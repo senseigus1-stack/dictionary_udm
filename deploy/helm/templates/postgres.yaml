@@ -1,0 +1,67 @@
+{{- if .Values.database.internal }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zechbur.databaseHost" . }}
+  labels:
+    {{- include "zechbur.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  clusterIP: None
+  ports: [{name: postgres, port: 5432, targetPort: postgres}]
+  selector:
+    {{- include "zechbur.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "zechbur.fullname" . }}-postgres
+  labels:
+    {{- include "zechbur.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  serviceName: {{ include "zechbur.databaseHost" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "zechbur.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "zechbur.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsUser: 70, runAsGroup: 70, fsGroup: 70, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: postgres
+          image: {{ .Values.database.image | quote }}
+          ports: [{name: postgres, containerPort: 5432}]
+          env:
+            - {name: POSTGRES_DB, value: {{ .Values.database.name | quote }}}
+            - {name: POSTGRES_USER, value: {{ .Values.database.user | quote }}}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: {{ include "zechbur.secretName" . }}, key: POSTGRES_PASSWORD}}
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+          readinessProbe:
+            exec: {command: ["pg_isready", "-U", {{ .Values.database.user | quote }}, "-d", {{ .Values.database.name | quote }}]}
+            periodSeconds: 10
+          livenessProbe:
+            exec: {command: ["pg_isready", "-U", {{ .Values.database.user | quote }}, "-d", {{ .Values.database.name | quote }}]}
+            periodSeconds: 20
+          resources: {{ toYaml .Values.database.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          volumeMounts: [{name: data, mountPath: /var/lib/postgresql/data}]
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.database.storage.storageClass }}
+        storageClassName: {{ .Values.database.storage.storageClass | quote }}
+        {{- end }}
+        resources: {requests: {storage: {{ .Values.database.storage.size }}}}
+{{- end }}

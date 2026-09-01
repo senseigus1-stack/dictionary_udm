@@ -1,0 +1,70 @@
+{{- if and .Values.backup.enabled .Values.database.internal }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "zechbur.fullname" . }}-backups
+  labels:
+    {{- include "zechbur.labels" . | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- if .Values.backup.storage.storageClass }}
+  storageClassName: {{ .Values.backup.storage.storageClass | quote }}
+  {{- end }}
+  resources: {requests: {storage: {{ .Values.backup.storage.size }}}}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "zechbur.fullname" . }}-backup
+  labels:
+    {{- include "zechbur.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            {{- include "zechbur.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext: {runAsNonRoot: true, runAsUser: 70, runAsGroup: 70, fsGroup: 70, seccompProfile: {type: RuntimeDefault}}
+          containers:
+            - name: pg-dump
+              image: {{ .Values.database.image | quote }}
+              command: ["/bin/sh", "-ec"]
+              args:
+                - >-
+                  pg_dump --format=custom --compress=9 --file="/backups/zechbur-$(date -u +%Y%m%dT%H%M%SZ).dump"
+                  --host="$PGHOST" --username="$PGUSER" "$PGDATABASE";
+                  find /backups -type f -name 'zechbur-*.dump' -mtime +{{ .Values.backup.retentionDays }} -delete
+              env:
+                - {name: PGHOST, value: {{ include "zechbur.databaseHost" . | quote }}}
+                - {name: PGUSER, value: {{ .Values.database.user | quote }}}
+                - {name: PGDATABASE, value: {{ .Values.database.name | quote }}}
+                - name: PGPASSWORD
+                  valueFrom: {secretKeyRef: {name: {{ include "zechbur.secretName" . }}, key: POSTGRES_PASSWORD}}
+              resources:
+                requests: {cpu: 50m, memory: 128Mi}
+                limits: {cpu: 500m, memory: 512Mi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: {drop: ["ALL"]}
+              volumeMounts:
+                - {name: backups, mountPath: /backups}
+                - {name: tmp, mountPath: /tmp}
+          volumes:
+            - name: backups
+              persistentVolumeClaim: {claimName: {{ include "zechbur.fullname" . }}-backups}
+            - name: tmp
+              emptyDir: {}
+{{- end }}

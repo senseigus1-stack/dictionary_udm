@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#173f35" />
+    <meta name="description" content="Ӟечбур — живой тренажёр удмуртских слов и грамматики" />
+    <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/assets/manifest.webmanifest" />
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <title>Ӟечбур — удмуртский каждый день</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#home" aria-label="Ӟечбур, на главную">
+          <span class="brand-mark">Ӟ</span>
+          <span><strong>Ӟечбур</strong><small>удмуртский каждый день</small></span>
+        </a>
+        <nav class="nav-list" aria-label="Главная навигация">
+          <button class="nav-item active" data-view="home"><span>⌂</span>Сегодня</button>
+          <button class="nav-item" data-view="study"><span>◇</span>Слова</button>
+          <button class="nav-item" data-view="grammar"><span>✦</span>Грамматика</button>
+          <button class="nav-item" data-view="dictionary"><span>⌕</span>Словарь</button>
+        </nav>
+        <div class="sidebar-phrase">
+          <span class="eyebrow">Фраза дня</span>
+          <strong>Ӟечбур!</strong>
+          <p>Здравствуйте! Дословно — «добро, благо».</p>
+        </div>
+        <div class="profile-row">
+          <div class="avatar">Ӧ</div>
+          <div><strong id="profile-name">Путешественник</strong><small id="profile-level">Начинающий</small></div>
+          <button class="icon-button" aria-label="Настройки">···</button>
+        </div>
+      </aside>
+
+      <main class="main" id="main-content">
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+        <section id="view-home" class="view active" aria-labelledby="home-title">
+          <header class="topbar">
+            <div><span class="eyebrow">Ваш маршрут · день <b id="streak-top">1</b></span><h1 id="home-title">Ӟечбур, <span id="hello-name">друг</span>!</h1></div>
+            <div class="top-actions"><span class="stat-pill">🔥 <b id="xp-top">0</b> XP</span><button class="round-button" aria-label="Уведомления">●</button></div>
+          </header>
+
+          <div class="dashboard-grid">
+            <div class="dashboard-main">
+              <article class="hero-card">
+                <div class="hero-copy">
+                  <span class="eyebrow light">Сегодня · 8–10 минут</span>
+                  <h2>Пусть новое слово<br />останется с вами</h2>
+                  <p id="hero-caption">Короткая сессия: повторение, новые слова и один шаг по грамматике.</p>
+                  <button class="primary-button light" data-go="study">Продолжить маршрут <span>→</span></button>
+                </div>
+                <div class="hero-art" aria-hidden="true">
+                  <div class="sun"></div><div class="hill hill-a"></div><div class="hill hill-b"></div>
+                  <div class="flower f1">✣</div><div class="flower f2">✤</div><div class="flower f3">✣</div>
+                  <span class="hero-word">кыл</span><small>слово</small>
+                </div>
+              </article>
+
+              <section class="section-block">
+                <div class="section-heading"><div><span class="eyebrow">Учебная тропа</span><h2>Следующие шаги</h2></div><button class="text-button" data-go="grammar">Вся грамматика →</button></div>
+                <div class="path-list" id="home-path">
+                  <article class="path-card accent"><div class="path-index">01</div><div><span class="tag">Слова</span><h3>Первые знакомства</h3><p>10 живых слов из словаря</p></div><button data-go="study">Начать</button></article>
+                  <article class="path-card"><div class="path-index">02</div><div><span class="tag amber">Грамматика</span><h3>Пять особенных букв</h3><p>ӝ · ӟ · ӥ · ӧ · ӵ</p></div><button data-go="grammar">Открыть</button></article>
+                  <article class="path-card muted"><div class="path-index">03</div><div><span class="tag blue">Контекст</span><h3>Собираем фразу</h3><p>Откроется после двух шагов</p></div><span class="lock">◌</span></article>
+                </div>
+              </section>
+            </div>
+
+            <aside class="today-panel">
+              <div class="goal-card">
+                <div class="goal-ring" id="goal-ring"><div><strong id="goal-count">0</strong><small>из <span id="goal-total">10</span></small></div></div>
+                <h3>Цель на сегодня</h3><p id="goal-message">Первый шаг — самый важный.</p>
+              </div>
+              <div class="mini-stats">
+                <div><span>Серия</span><strong>🔥 <b id="streak-value">0</b> дней</strong></div>
+                <div><span>Изучено</span><strong><b id="learned-value">0</b> слов</strong></div>
+                <div><span>Точность</span><strong><b id="accuracy-value">0</b>%</strong></div>
+              </div>
+              <div class="note-card"><span>Ӧ</span><div><strong>Маленький ритм</strong><p>Лучше 10 слов каждый день, чем 70 раз в неделю.</p></div></div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="view-study" class="view" aria-labelledby="study-title">
+          <header class="study-header">
+            <button class="back-button" data-go="home">←</button>
+            <div class="session-progress"><div id="session-progress-bar"></div></div>
+            <span id="session-counter">0 / 0</span>
+          </header>
+          <div class="study-stage">
+            <div class="study-intro"><span class="eyebrow">Слова · активное вспоминание</span><h1 id="study-title">Выберите значение</h1><p>Не угадывайте форму — попробуйте услышать слово внутри.</p></div>
+            <article id="study-card" class="word-card loading-card">
+              <span class="word-label">Удмуртское слово</span><h2 id="study-word">Готовим карточки…</h2><div id="word-meta" class="word-meta"></div>
+            </article>
+            <div id="answer-options" class="answer-grid"></div>
+            <div id="answer-reveal" class="answer-reveal" hidden></div>
+          </div>
+        </section>
+
+        <section id="view-grammar" class="view" aria-labelledby="grammar-title">
+          <header class="topbar compact"><div><span class="eyebrow">Грамматика · по очерку В. И. Алатырева</span><h1 id="grammar-title">Язык как конструктор</h1><p>Короткие правила сразу превращаются в действие.</p></div><span class="stat-pill">✦ <b id="grammar-completed">0</b>/10</span></header>
+          <div class="grammar-layout">
+            <div class="grammar-map" id="grammar-list"><div class="skeleton tall"></div></div>
+            <article class="lesson-reader" id="lesson-reader">
+              <div class="reader-empty"><span>Ӝ</span><h2>Выберите урок на тропе</h2><p>Каждый занимает около пяти минут и заканчивается тремя упражнениями.</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-dictionary" class="view" aria-labelledby="dictionary-title">
+          <header class="topbar compact"><div><span class="eyebrow">44 637 словарных статей</span><h1 id="dictionary-title">Живой словарь</h1><p>Ищите по-удмуртски или по-русски, сохраняйте контекст.</p></div></header>
+          <form class="search-box" id="search-form"><span>⌕</span><input id="search-input" autocomplete="off" placeholder="Например: ӟеч, дом, говорить…" /><button>Найти</button></form>
+          <div class="dictionary-layout"><div><div class="results-head"><span id="results-count">Начните поиск</span><span>слово · значение · пометы</span></div><div id="dictionary-results" class="dictionary-results"><div class="empty-state">Введите слово — мы найдём точные и близкие совпадения.</div></div></div><aside id="entry-detail" class="entry-detail"><span class="detail-letter">Ӟ</span><h3>Больше, чем перевод</h3><p>В статье сохраняются часть речи, стилистические пометы, оттенки значения и примеры из исходного словаря.</p></aside></div>
+        </section>
+      </main>
+
+      <nav class="mobile-nav" aria-label="Мобильная навигация">
+        <button class="active" data-view="home"><span>⌂</span>Сегодня</button><button data-view="study"><span>◇</span>Слова</button><button data-view="grammar"><span>✦</span>Правила</button><button data-view="dictionary"><span>⌕</span>Словарь</button>
+      </nav>
+    </div>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="module" src="/assets/app.js"></script>
+  </body>
+</html>

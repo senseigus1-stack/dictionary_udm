@@ -1,0 +1,78 @@
+{{- if .Values.bot.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zechbur.fullname" . }}-bot
+  labels:
+    {{- include "zechbur.labels" . | nindent 4 }}
+    app.kubernetes.io/component: bot
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels:
+      {{- include "zechbur.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: bot
+  template:
+    metadata:
+      labels:
+        {{- include "zechbur.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: bot
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: bot
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["bot"]
+          envFrom:
+            - configMapRef: {name: {{ include "zechbur.fullname" . }}-config}
+            - secretRef: {name: {{ include "zechbur.secretName" . }}}
+          resources: {{ toYaml .Values.bot.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {}}]
+---
+{{- end }}
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zechbur.fullname" . }}-worker
+  labels:
+    {{- include "zechbur.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "zechbur.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        {{- include "zechbur.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["worker"]
+          envFrom:
+            - configMapRef: {name: {{ include "zechbur.fullname" . }}-config}
+            - secretRef: {name: {{ include "zechbur.secretName" . }}}
+          resources: {{ toYaml .Values.worker.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {}}]
+{{- end }}

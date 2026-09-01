@@ -1,0 +1,115 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/senseigus1-stack/dictionary_udm
+  tag: rc-2.0
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+api:
+  replicas: 2
+  resources:
+    requests: {cpu: 150m, memory: 256Mi}
+    limits: {cpu: "1", memory: 768Mi}
+  podAnnotations: {}
+
+bot:
+  enabled: false
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 300m, memory: 384Mi}
+
+worker:
+  enabled: true
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 384Mi}
+
+config:
+  environment: production
+  corsOrigins: https://udmurt.example.org
+  publicUrl: https://udmurt.example.org
+  dailyTokenDays: "180"
+  autoImportDictionary: "false"
+
+secrets:
+  existingSecret: ""
+  appSecret: ""
+  telegramBotToken: ""
+  telegramBotSecret: ""
+  externalDatabaseUrl: ""
+  externalRedisUrl: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 2m
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+  host: udmurt.example.org
+  tls:
+    enabled: true
+    secretName: udmurt-tls
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+database:
+  internal: true
+  image: postgres:17-alpine
+  name: udmurt
+  user: udmurt
+  password: ""
+  storage:
+    size: 10Gi
+    storageClass: ""
+  resources:
+    requests: {cpu: 150m, memory: 256Mi}
+    limits: {cpu: "1", memory: 1Gi}
+
+redis:
+  internal: true
+  image: redis:7.4-alpine
+  storage:
+    size: 2Gi
+    storageClass: ""
+  resources:
+    requests: {cpu: 50m, memory: 96Mi}
+    limits: {cpu: 300m, memory: 256Mi}
+
+jobs:
+  migrations:
+    enabled: true
+  dictionaryImport:
+    enabled: true
+
+backup:
+  enabled: true
+  schedule: "17 2 * * *"
+  retentionDays: 14
+  storage:
+    size: 20Gi
+    storageClass: ""
+
+serviceMonitor:
+  enabled: false
+  interval: 30s
+
+networkPolicy:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
